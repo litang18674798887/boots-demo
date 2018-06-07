@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ExcelDemoApplication {
+public class BootRedisApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ExcelDemoApplication.class, args);
+        SpringApplication.run(BootRedisApplication.class, args);
     }
 }
