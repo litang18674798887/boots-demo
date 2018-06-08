@@ -7,10 +7,16 @@ import com.pagoda.bean.PinOrderOutPut;
 import com.pagoda.bean.Store;
 import com.pagoda.excel.PoiExcelExportUtils;
 import com.pagoda.excel.ReadExcel;
+import com.pagoda.utils.ExcelUtils;
+import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -222,16 +228,6 @@ public class ExcelService {
 
         }
 
-
-
-
-
-
-
-
-
-
-
     }
 
     private List<OrderData> getOrderDataList(File file) {
@@ -267,5 +263,60 @@ public class ExcelService {
         }
 
         return orderDataList;
+    }
+
+    /**
+     * 处理数据量大于65535的情况
+     */
+    public void bigData() {
+
+
+
+    }
+
+    public void exportExcel(List<String> formList, ServletOutputStream outputStream) {
+
+        try {
+            //工作表名后面的数字，如表1，表2
+            int i = 0;
+            //记录总行数
+            int rownum = 0;
+            //记录每个sheet的行数
+            int tempnum = 0;
+            //分页条数达到此条数则创建工作表
+            int page = 60000;
+            //创建工作薄
+            HSSFWorkbook workbook = new HSSFWorkbook();
+            //创建列标题栏样式
+            HSSFCellStyle cellStyle = ExcelUtils.createCellStyle(workbook, (short)10);
+            while(true){
+                //创建工作表并应用上面的样式
+                HSSFSheet sheet = ExcelUtils.createWorkbook(workbook,cellStyle,++i);
+                rownum++;
+                //将数据库中的数据列表写入excel中
+                if(formList != null){
+                    tempnum = 0;
+                    for (int j=rownum-i; j<formList.size(); j++) {
+                        //进入第2个sheet写出的行数从第2条数据开始(++tempnum等于1，因为标题行占了1行)
+                        HSSFRow row2 = sheet.createRow(++tempnum);
+                        rownum++;
+                        row2.createCell(0).setCellValue(formList.get(j));
+                        //达到5条退出并创建另外一个sheet
+                        if(rownum%page == 0){
+                            break;
+                        }
+                    }
+                }
+                //如果记录的行数等于集合的总行数则退出
+                if((rownum-i) == formList.size()){
+                    break;
+                }
+            }
+            //输出
+            workbook.write(outputStream);
+            workbook.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
